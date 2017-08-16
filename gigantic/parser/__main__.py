@@ -55,9 +55,9 @@ class Archetype(UIResource):
 	UtilityStat = 0						# 80
 	PlayDifficulty = 0					# 5
 	PlayStyle = 0						# 14
-	BaseUIReticleSpreadMultiplier = 1.0 # 1.0f
+	BaseUIReticleSpreadMultiplier = 1.0	# 1.0f
 	LowHealthTriggerPercent = 40.0		# 40.0f
-	LowHealthRecoveredPercent = 43.3	# 43.3f
+	LowHealthRecoveredPercent = 43.0	# 43.3f
 	LowStaminaTriggerPercent = 25.0		# 25.0f
 	LowStaminaRecoveredPercent = 30.0	# 30.0f
 
@@ -87,6 +87,12 @@ def parse_hero(file_name):
 
 	sections = config.sections()
 	hero = Archetype()
+
+	"""
+	Instantiate class object based on section name, names are like [ResourceID RxSkillProvider] where the string after
+	space is the object type, and the string before is the ResourceID... but the ResourceID is also specified within
+	the section so... whatever?
+	"""
 
 	for section in sections:
 		data = config[section]
