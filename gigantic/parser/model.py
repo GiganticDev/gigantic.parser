@@ -1,5 +1,12 @@
 # encoding: utf-8
 
+
+"""
+Definition of the class attributes like this as empty strings or default values is _completely_ pointless and very
+stupid considering the base resource class inherits from dict. I'm just doing it for documentation reasons, to sort of
+1:1 map the data we expect with whats in the ini files. This will be cleaned up once I polish this utility.
+"""
+
 class Resource(dict): # Abstraction, no real sections in the ini
 	resourceid = None					# puAdept4_Cooldown_Upgrade, Adept, etc etc
 

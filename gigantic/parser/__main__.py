@@ -8,6 +8,14 @@ import json
 from .model import *
 
 
+"""
+This is all mostly testing at the moment, don't judge me.
+
+We expect to be run via `python -m gigantic.parser` while inside the base gigantic RxGame directory. This will currently
+search for all files in the RxGame/Config/Heroes directory and read the values into python memory then just dump the
+data we have to json to the cli output. Again, all testing.
+"""
+
 def get_hero_config(file_name):
 	# print("Parsing hero at {0}".format(file_name))
 	config = configparser.ConfigParser(strict=False) # strict=False to allow duplicate keys within sections
