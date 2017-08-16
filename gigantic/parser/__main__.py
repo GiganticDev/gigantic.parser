@@ -5,45 +5,45 @@ import configparser
 import tempfile
 
 
-class Resource(object):
+class Resource(object): # Abstraction, no real sections in the ini
 	ResourceID = ''						# puAdept4_Cooldown_Upgrade, Adept, etc etc
 
 
-class UIResource(Resource):
+class UIResource(Resource): # Abstraction, no real sections in the ini
 	UIResourceID = ''					# Adept, AdeptGhost, etc
 
 
-class Skill(Resource):
+class Skill(Resource): # [ResourceID RxSkillProvider]
 	UIResourceID = ''					# Skill1, used as translation index?
 	HeroArchetypeName = ''				# Adept, same as HeroArchetypeName in Archetype
 	SkillName = ''						# Skill1, Skill2, Skill3, or Skill3 typically
 
 
-class Upgrade(Resource):
+class Upgrade(Resource): # Abstraction, no real sections in the ini
 	HeroName = ''						# Adept, same as HeroArchetypeName
 	UpgradeTier = ''					# ESUT_Upgrade1, ESUT_Upgrade1_SubUpgrade1, ESUT_Upgrade2, ESUT_Upgrade2_SubUpgrade1, ESUT_None, etc
 	MinHeroLevel = 0					# 1 or 5?
 	UpgradePathCategory = ''			# UPC_Offense, UPC_Defense, UPC_BurstDamage, UPC_Healing, UPC_Sustain, UPC_Mobility, UPC_AntiDebuffs
 
 
-class SkillUpgrade(Upgrade):
+class SkillUpgrade(Upgrade): # [ResourceID RxSkillUpgradeProvider]
 	SkillUpgradeCategory = ''			# EUC_Skill1Upgrade where Skill1 is the 'SkillName' of the skill
 	SkillIndex = 0						# Not sure what it corresponds to, have seen anywhere from 11-34
 
 
-class PassiveUpgrade(Resource):
+class PassiveUpgrade(Resource): # [ResourceID RxPassiveUpgradeProvider]
 	PassiveUpgradeCategory = '' 		# EUC_UnlockedDuringClash
 	PassiveIconIdentifier = ''			# AttackFocus
 	PassiveIndex = 0					# 4, 5, 6?
 
 
-class SummonProvider(UIResource):
+class SummonProvider(UIResource): # [ResourceID RxSummonProvider]
 	ProviderPawnClassPath = ''			# "RxGameContent.RxPawn_AdeptAttacker"
 	SummonBehaviorTreeName = ''			# "BT_AdeptAttacker"
 	CreatorID = ''						# Adept (Maybe HeroArchetypeName?)
 
 
-class Archetype(UIResource):
+class Archetype(UIResource): # [HeroArchetypeName RxHeroProvider]
 	HeroArchetypeName = ''				# Adept_Pawn_Arch
 	ProviderPawnClassPath = ''			# "RxGameContent.RxPawn_Adept"
 	DataSortPriority = 1700				# 1700
