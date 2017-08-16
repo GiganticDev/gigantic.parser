@@ -32,6 +32,12 @@ def get_hero_config(file_name):
 
 
 def parse_hero(file_name):
+	"""
+	Instantiate class object based on section name, names are like [ResourceID RxSkillProvider] where the string after
+	space is the object type, and the string before is the ResourceID... but the ResourceID is also specified within
+	the section so... whatever?
+	"""
+
 	config = get_hero_config(file_name)
 	if not config:
 		raise ValueError()
@@ -39,22 +45,18 @@ def parse_hero(file_name):
 	sections = config.sections()
 	hero = {'name': '', 'skills': [], 'skill_upgrades': []}
 
-	"""
-	Instantiate class object based on section name, names are like [ResourceID RxSkillProvider] where the string after
-	space is the object type, and the string before is the ResourceID... but the ResourceID is also specified within
-	the section so... whatever?
-	"""
-
 	for section in sections:
 		res, _, res_type = section.partition(' ')
-		if len(res_type) <= 0:
+		if len(res_type) <= 0: # Make sure this is actually a resource section and not something like Core.System
 			continue
 		try:
 			Cls = class_section_map[res_type]
 		except KeyError:
-			continue
+			continue # We'll just continue, ignore all classes that we haven't coded a "model" for
 
 		resource = Cls( **{key: val for key,val in config.items(section)} )
+
+		# Add resources to our basic hero set
 		if isinstance(resource, Archetype):
 			hero['name'] = resource.heroarchetypename
 		elif isinstance(resource, Skill):
@@ -66,6 +68,10 @@ def parse_hero(file_name):
 
 
 def parse_heroes():
+	"""
+	Loops all files found in Config/Heroes and attempts to parse them into the "Models". Returns a list consisting of
+	sets each representing a hero.
+	"""
 	hero_files = os.listdir('Config/Heroes')
 	if len(hero_files) == 0:
 		print("Found no hero config files")
@@ -80,8 +86,8 @@ def parse_heroes():
 		except ValueError:
 			pass
 
-	print(json.dumps(heroes))
+	return heroes
 
 
 if __name__ == '__main__':
-	parse_heroes()
+	print(json.dumps(parse_heroes()))
