@@ -5,47 +5,96 @@ import configparser
 import tempfile
 
 
-class Archetype(object):
-	def __init__(self, file_name):
-		print("Parsing hero at {0}".format(file_name))
-		self._config = configparser.ConfigParser(strict=False) # strict=False to allow duplicate keys within sections
+class Resource(object):
+	ResourceID = ''						# puAdept4_Cooldown_Upgrade, Adept, etc etc
 
-		# Stupid hackiness to decode utf-16le file, encode it as utf-8, then write to temporary file to fix BOM
-		u = open(file_name, "rb").read().decode("utf-16le").encode("utf-8")
-		fp = tempfile.TemporaryFile()
-		fp.write(u)
-		fp.seek(0)
 
-		# ConfigParser ultimately wants ascii
-		self._config.read_string(fp.read().decode("ascii", "ignore"))
+class UIResource(Resource):
+	UIResourceID = ''					# Adept, AdeptGhost, etc
 
-		self._hero_provider = {}
-		self._skill_providers = []
-		self._parse()
 
-	def _parse(self):
-		if not self._config:
-			raise NotImplementedError()
+class Skill(Resource):
+	UIResourceID = ''					# Skill1, used as translation index?
+	HeroArchetypeName = ''				# Adept, same as HeroArchetypeName in Archetype
+	SkillName = ''						# Skill1, Skill2, Skill3, or Skill3 typically
 
-		sections = self._config.sections()
-		for section in sections:
-			if 'RxHeroProvider' in section:
-				self._hero_provider = self._config[section]
-			elif 'RkSkillProvider' in section or 'RxSkillUpgradeProvider' in section:
-				self._skill_providers.append(self._config[section])
 
-		# print(self._skill_providers)
-		# print(self._hero_provider)
+class Upgrade(Resource):
+	HeroName = ''						# Adept, same as HeroArchetypeName
+	UpgradeTier = ''					# ESUT_Upgrade1, ESUT_Upgrade1_SubUpgrade1, ESUT_Upgrade2, ESUT_Upgrade2_SubUpgrade1, ESUT_None, etc
+	MinHeroLevel = 0					# 1 or 5?
+	UpgradePathCategory = ''			# UPC_Offense, UPC_Defense, UPC_BurstDamage, UPC_Healing, UPC_Sustain, UPC_Mobility, UPC_AntiDebuffs
 
-		if not self._hero_provider:
-			raise ValueError()
 
-		self._name = self._hero_provider['HeroArchetypeName']
+class SkillUpgrade(Upgrade):
+	SkillUpgradeCategory = ''			# EUC_Skill1Upgrade where Skill1 is the 'SkillName' of the skill
+	SkillIndex = 0						# Not sure what it corresponds to, have seen anywhere from 11-34
 
-		# print(sections)
+
+class PassiveUpgrade(Resource):
+	PassiveUpgradeCategory = '' 		# EUC_UnlockedDuringClash
+	PassiveIconIdentifier = ''			# AttackFocus
+	PassiveIndex = 0					# 4, 5, 6?
+
+
+class SummonProvider(UIResource):
+	ProviderPawnClassPath = ''			# "RxGameContent.RxPawn_AdeptAttacker"
+	SummonBehaviorTreeName = ''			# "BT_AdeptAttacker"
+	CreatorID = ''						# Adept (Maybe HeroArchetypeName?)
+
+
+class Archetype(UIResource):
+	HeroArchetypeName = ''				# Adept_Pawn_Arch
+	ProviderPawnClassPath = ''			# "RxGameContent.RxPawn_Adept"
+	DataSortPriority = 1700				# 1700
+	PrimaryTraitPath = ''				# tp_Duelist
+	SecondaryTraitPath = ''				# tp_helper
+	AttackStat = 0						# 50
+	DefenseStat = 0						# 60
+	MobilityStat = 0					# 30
+	UtilityStat = 0						# 80
+	PlayDifficulty = 0					# 5
+	PlayStyle = 0						# 14
+	BaseUIReticleSpreadMultiplier = 1.0 # 1.0f
+	LowHealthTriggerPercent = 40.0		# 40.0f
+	LowHealthRecoveredPercent = 43.3	# 43.3f
+	LowStaminaTriggerPercent = 25.0		# 25.0f
+	LowStaminaRecoveredPercent = 30.0	# 30.0f
 
 	def __repr__(self):
-		return self._name
+		return self.HeroArchetypeName
+
+
+def get_hero_config(file_name):
+	print("Parsing hero at {0}".format(file_name))
+	config = configparser.ConfigParser(strict=False) # strict=False to allow duplicate keys within sections
+
+	# Stupid hackiness to decode utf-16le file, encode it as utf-8, then write to temporary file to fix BOM
+	u = open(file_name, "rb").read().decode("utf-16le").encode("utf-8")
+	fp = tempfile.TemporaryFile()
+	fp.write(u)
+	fp.seek(0)
+
+	# ConfigParser ultimately wants ascii
+	config.read_string(fp.read().decode("ascii", "ignore"))
+	return config
+
+
+def parse_hero(file_name):
+	config = get_hero_config(file_name)
+	if not config:
+		raise ValueError()
+
+	sections = config.sections()
+	hero = Archetype()
+
+	for section in sections:
+		data = config[section]
+		if 'RxHeroProvider' in section: # Named like [Adept_Pawn_Arch RxHeroProvider]
+			resource_id = data['ResourceID']
+			hero.HeroArchetypeName = data['HeroArchetypeName']
+
+	return hero
 
 
 def parse_heroes():
@@ -59,7 +108,7 @@ def parse_heroes():
 
 	for f in hero_files:
 		try:
-			heroes.append(Archetype(f))
+			heroes.append(parse_hero(f))
 		except ValueError:
 			pass
 
