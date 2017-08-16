@@ -51,7 +51,7 @@ def parse_hero(file_name):
 		if len(res_type) <= 0: # Make sure this is actually a resource section and not something like Core.System
 			continue
 
-		resource = dict(**{key: val for key,val in config.items(section)} )
+		resource = dict(config.items(section))
 
 		# Add resources to our basic hero set
 		if res_type == 'RxHeroProvider':
@@ -59,7 +59,7 @@ def parse_hero(file_name):
 		elif res_type == 'RxSkillProvider':
 			hero['skills'].append(resource)
 		elif res_type == 'RxSkillUpgradeProvider':
-			hero['skills'].append(resource)
+			hero['skill_upgrades'].append(resource)
 
 	return hero
 
