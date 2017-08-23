@@ -43,8 +43,8 @@ setup(
 			],
 
 		install_requires = [
-				'marrow.schema < 2.0',
-				'pymongo > 3.2',
+				'marrow.schema < 2.0',  # For declarative schemas in the DAO
+				'pymongo > 3.2',  # For bson.json_util
 			],
 
 		extras_require = dict(
