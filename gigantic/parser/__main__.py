@@ -47,7 +47,7 @@ def parse_file(file_name):
 	# Section names in the gigantic files are in the format [ResourceID RxSkillProvider] where the string after
 	# space is the object type, and the string before is the ResourceID. The ResourceID is normally redundantly
 	# defined within the section as well.
-	log.info("Parsing hero file " + file_name)
+	print("Parsing hero file " + file_name)
 	config = get_hero_config(file_name)
 	if not config:
 		raise ValueError()
@@ -90,8 +90,9 @@ def parse_heroes(directory='Config/Heroes'):
 		except ValueError:
 			pass
 
-	for id, skill in Skill.__dataset__.items():
-		print("Skill: " + str(skill))
+	for section, Res in Resource.__map__.items():
+		for id, instance in Res.__dataset__.items():
+			print(instance)
 
 	return heroes
 
