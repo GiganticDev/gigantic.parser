@@ -94,13 +94,13 @@ def parse_heroes(directory='Config/Heroes'):
 	
 	for section, Res in Resource.__map__.items():
 		for id, instance in Res.__dataset__.items():
-			log.debug(instance)
+			print(instance)
 	
 	# Get skills for Adept, aka Aisling, to test timing of naive list comprehension filtering
 	before = time.time()
 	skills = [skill for skill in Skill.__dataset__.values() if skill.hero == 'Adept']
 	after = time.time()
-	print("Fetched {0} skills in {1:.3f}ms".format(len(skills), (after-before)*1000))
+	print("Fetched {0} skills for Aisling in {1:.3f}ms".format(len(skills), (after-before)*1000))
 	for skill in skills:
 		print(dumps(skill))
 
