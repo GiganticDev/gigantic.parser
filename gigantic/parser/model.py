@@ -13,11 +13,12 @@ class Relationship(Attribute):
 	
 	def __get__(self, obj, cls=None):
 		id = super(Relationship, self).__get__(obj, cls)
-		if id is None or id == 'None': return id # There are some RxSkillUpgradeProvider's with HeroName = None
-		try:
-			return self.resource.__dataset__[id]
-		except KeyError:
-			raise ValueError("No {0} found with id {1}".format(self.resource.__name__, id))
+		return id
+		# if id is None or id == 'None': return id # There are some RxSkillUpgradeProvider's with HeroName = None
+		# try:
+		# 	return self.resource.__dataset__[id]
+		# except KeyError:
+		# 	raise ValueError("No {0} found with id {1}".format(self.resource.__name__, id))
 
 
 class Resource(Container):  # Abstraction, no real sections in the ini
@@ -89,10 +90,6 @@ class Hero(UIResource):  # [HeroArchetypeName RxHeroProvider]
 	
 	stamina_min_trigger = Attribute('lowstaminatriggerpercent')  # 25.0f
 	stamina_recover_trigger = Attribute('lowstaminarecoveredpercent')  # 30.0f
-	
-	def __repr__(self):
-		# For now just output ID to prevent relationships nesting the whole thing
-		return "{0}({1})".format(self.__class__.__name__, self.id)
 
 
 class Skill(UIResource):  # [ResourceID RxSkillProvider]
