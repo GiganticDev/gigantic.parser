@@ -4,6 +4,7 @@ import os
 import configparser
 import tempfile
 import json
+import time
 
 
 from .model import *
@@ -47,7 +48,7 @@ def parse_file(file_name):
 	# Section names in the gigantic files are in the format [ResourceID RxSkillProvider] where the string after
 	# space is the object type, and the string before is the ResourceID. The ResourceID is normally redundantly
 	# defined within the section as well.
-	print("Parsing hero file " + file_name)
+	log.info("Parsing hero file {0}".format(file_name))
 	config = get_hero_config(file_name)
 	if not config:
 		raise ValueError()
@@ -92,10 +93,16 @@ def parse_heroes(directory='Config/Heroes'):
 
 	for section, Res in Resource.__map__.items():
 		for id, instance in Res.__dataset__.items():
-			print(instance)
-
-	return heroes
+			log.debug(instance)
+	
+	# Get skills for Adept, aka Aisling, to test timing of naive list comprehension filtering
+	before = time.time()
+	skills = [skill for skill in Skill.__dataset__.values() if skill.hero == 'Adept']
+	after = time.time()
+	print("Fetched {0} skills in {1:.3f}ms".format(len(skills), (after-before)*1000))
+	for skill in skills:
+		print(skill)
 
 
 if __name__ == '__main__':
-	print(json.dumps(parse_heroes()))
+	parse_heroes()
