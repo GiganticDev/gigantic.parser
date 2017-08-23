@@ -23,10 +23,10 @@ setup(
 		include_package_data = True,
 		package_data = {'': [
 				'README.rst',
-			]}, 
+			]},
 
 		namespace_packages = [
-				'gigantic',  
+				'gigantic',
 			],
 
 		setup_requires = [
@@ -40,9 +40,10 @@ setup(
 				'pytest-cov',
 				'pytest-spec',
 				'pytest-flakes',
-			], 
+			],
 
 		install_requires = [
+				'marrow.schema',
 			],
 
 		extras_require = dict(
