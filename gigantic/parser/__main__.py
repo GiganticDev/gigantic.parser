@@ -6,6 +6,9 @@ import tempfile
 import json
 
 
+from .model import *
+
+
 """
 This is all mostly testing at the moment, don't judge me.
 
