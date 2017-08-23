@@ -6,8 +6,10 @@ import tempfile
 import json
 import time
 
+from bson.json_util import dumps
 
-from .model import *
+
+from gigantic.dao.model import *
 
 
 log = __import__('logging').getLogger(__name__)
@@ -100,7 +102,7 @@ def parse_heroes(directory='Config/Heroes'):
 	after = time.time()
 	print("Fetched {0} skills in {1:.3f}ms".format(len(skills), (after-before)*1000))
 	for skill in skills:
-		print(skill)
+		print(dumps(skill))
 
 if __name__ == '__main__':
 	parse_heroes()

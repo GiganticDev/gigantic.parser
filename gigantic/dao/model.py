@@ -1,65 +1,16 @@
 # encoding: utf-8
 
-from marrow.schema import Attribute, Attributes, Container
+from marrow.schema import Attribute, Container
+
+from gigantic.dao.base import DAO
+from gigantic.dao.relationship import Relationship
 
 
 log = __import__('logging').getLogger(__name__)
 
-class Relationship(Attribute):
-	resource = Attribute()
-	
-	def __fixup__(self, cls):
-		self.resource.__relates_to__(cls)  # cls == the class a Relationship instance is being assigned to
-	
-	def __get__(self, obj, cls=None):
-		id = super(Relationship, self).__get__(obj, cls)
-		return id
-		# if id is None or id == 'None': return id # There are some RxSkillUpgradeProvider's with HeroName = None
-		# try:
-		# 	return self.resource.__dataset__[id]
-		# except KeyError:
-		# 	raise ValueError("No {0} found with id {1}".format(self.resource.__name__, id))
 
-
-class Resource(Container):  # Abstraction, no real sections in the ini
-	__map__ = {}  # this is global to the entire base class
-	__fields__ = Attributes(Attribute)
-	
+class Resource(DAO):
 	id = Attribute('resourceid')  # puAdept4_Cooldown_Upgrade, Adept, etc etc
-	
-	@classmethod
-	def __attributed__(cls):
-		"""Called after a new subclass is constructed."""
-		
-		if hasattr(cls, '__section__') and cls.__section__:
-			cls.__map__[cls.__section__] = cls
-		
-		cls.__relations__ = set()  # this is specific to a subclass
-		cls.__dataset__ = {}  # this is also specific to a subclass
-	
-	def __init__(self, data=None, *args, **kw):
-		super().__init__(*args, **kw)
-		
-		if data is not None:
-			self.__data__ = data
-		
-		if self.id in self.__dataset__:
-			raise ValueError("Duplicate " + self.__class__.__name__ + " ID: " + self.id)
-		
-		self.__dataset__[self.id] = self  # Record ourselves.
-	
-	@classmethod
-	def __relates_to__(cls, foreign):
-		cls.__relations__.add(foreign)
-	
-	def __repr__(self):
-		parts = []
-		for name, field in self.__fields__.items():
-			value = getattr(self, name, None)
-			if value:
-				parts.append(name + "=" + repr(value))
-				
-		return "{0}({1})".format(self.__class__.__name__, ", ".join(parts))
 
 
 class UIResource(Resource):  # Abstraction, no real sections in the ini
