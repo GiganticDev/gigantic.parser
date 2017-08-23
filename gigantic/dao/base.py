@@ -4,7 +4,7 @@ from marrow.schema import Attribute, Attributes, Container
 from collections import MutableMapping
 
 
-class DAO(Container):  # Abstraction, no real sections in the ini
+class DAO(Container):
 	__map__ = {}  # this is global to the entire base class
 	__fields__ = Attributes(Attribute)
 	
@@ -80,7 +80,11 @@ class DAO(Container):  # Abstraction, no real sections in the ini
 	def items(self):
 		"""Iterate 2-tuple pairs of (key, value) from the backing store."""
 		
-		return {name: self.__data__[field.__name__] for name, field in self.__attributes__.items() if field.__name__ in self.__data__}.items()
+		# I can't decide how best to wrap this... =/
+		return {
+			name: self.__data__[field.__name__]
+			for name, field in self.__attributes__.items() if field.__name__ in self.__data__
+		}.items()
 	
 	iteritems = items  # Python 2 interation, as per items.
 	
