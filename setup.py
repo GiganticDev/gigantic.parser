@@ -43,7 +43,8 @@ setup(
 			],
 
 		install_requires = [
-				'marrow.schema',
+				'marrow.schema < 2.0',
+				'marrow.mongo < 2.0',
 			],
 
 		extras_require = dict(
