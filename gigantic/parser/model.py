@@ -10,15 +10,30 @@ class Relationship(Attribute):
 	name = Attribute()
 	
 	def __fixup__(self, cls):
-		self.resource.__related_to__(cls)  # cls == the class a Relationship instance is being assigned to
+		self.resource.__relates_to__(cls)  # cls == the class a Relationship instance is being assigned to
 
 
 class Resource(Container):  # Abstraction, no real sections in the ini
 	id = Attribute('resourceid')  # puAdept4_Cooldown_Upgrade, Adept, etc etc
 	
-	def __related_to__(self, foreign):
-		rel = self.__dict__.setdefault('__relations__', set()) # Add relations if not already set
-		rel.add(foreign)
+	@classmethod
+	def __attributed__(cls):
+		"""Called after a new subclass is constructed."""
+		
+		cls.__relations__ = set()  # this is specific to a subclass
+		cls.__dataset__ = {}  # this is also specific to a subclass
+	
+	def __init__(self, *args, **kw):
+		super().__init__(*args, **kw)
+		
+		if self.id in self.__dataset__:
+			raise ValueError("Duplicate " + self.__class__.__name__ + " ID: " + self.id)
+		
+		self.__dataset__[self.id] = self  # Record ourselves.
+	
+	@classmethod
+	def __relates_to__(cls, foreign):
+		cls.__relations__.add(foreign)
 	
 	def __repr__(self):
 		return self.id
