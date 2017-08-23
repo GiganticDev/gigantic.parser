@@ -15,16 +15,23 @@ class Relationship(Attribute):
 
 class Resource(Container):  # Abstraction, no real sections in the ini
 	id = Attribute('resourceid')  # puAdept4_Cooldown_Upgrade, Adept, etc etc
+	__map__ = {}
 	
 	@classmethod
 	def __attributed__(cls):
 		"""Called after a new subclass is constructed."""
 		
+		if hasattr(cls, '__section__') and cls.__section__:
+			cls.__map__[cls.__section__] = cls
+		
 		cls.__relations__ = set()  # this is specific to a subclass
 		cls.__dataset__ = {}  # this is also specific to a subclass
 	
-	def __init__(self, *args, **kw):
+	def __init__(self, data=None, *args, **kw):
 		super().__init__(*args, **kw)
+		
+		if data is not None:
+			self.__data__ = data
 		
 		if self.id in self.__dataset__:
 			raise ValueError("Duplicate " + self.__class__.__name__ + " ID: " + self.id)
@@ -34,10 +41,6 @@ class Resource(Container):  # Abstraction, no real sections in the ini
 	@classmethod
 	def __relates_to__(cls, foreign):
 		cls.__relations__.add(foreign)
-	
-	def __repr__(self):
-		return self.id
-
 
 class UIResource(Resource):  # Abstraction, no real sections in the ini
 	ui_id = Attribute('uiresource')  # Adept, AdeptGhost, etc
@@ -101,7 +104,7 @@ class PassiveUpgrade(Resource):  # [ResourceID RxPassiveUpgradeProvider]
 	index = Attribute('passiveindex')  # 4, 5, 6?
 
 
-class UpgradePath(Resource): # [ResourceID RxUpgradePathProvider]
+class UpgradePath(Container): # [ResourceID RxUpgradePathProvider]
 	__section__ = 'RxUpgradePathProvider'
 	
 	set_name = Attribute('setname')  # up_Adept_Default

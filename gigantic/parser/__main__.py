@@ -9,6 +9,8 @@ import json
 from .model import *
 
 
+log = __import__('logging').getLogger(__name__)
+
 """
 This is all mostly testing at the moment, don't judge me.
 
@@ -22,17 +24,20 @@ def get_hero_config(file_name):
 	config = configparser.ConfigParser(strict=False) # strict=False to allow duplicate keys within sections
 
 	# Stupid hackiness to decode utf-16le file, encode it as utf-8, then write to temporary file to fix BOM
-	u = open(file_name, "rb").read().decode("utf-16le").encode("utf-8")
+	f = open(file_name, "rb")
+	u = f.read().decode("utf-16le").encode("utf-8")
+	f.close()
 	fp = tempfile.TemporaryFile()
 	fp.write(u)
 	fp.seek(0)
 
 	# ConfigParser ultimately wants ascii
 	config.read_string(fp.read().decode("ascii", "ignore"))
+	fp.close()
 	return config
 
 
-def parse_hero(file_name):
+def parse_file(file_name):
 	"""
 	Instantiate python objects in memory from the config files.
 	Returns the data in a set which reprents the hero and their skills.
@@ -42,29 +47,28 @@ def parse_hero(file_name):
 	# Section names in the gigantic files are in the format [ResourceID RxSkillProvider] where the string after
 	# space is the object type, and the string before is the ResourceID. The ResourceID is normally redundantly
 	# defined within the section as well.
+	log.info("Parsing hero file " + file_name)
 	config = get_hero_config(file_name)
 	if not config:
 		raise ValueError()
-
+	
 	sections = config.sections()
-	hero = {'name': '', 'skills': [], 'skill_upgrades': []}
-
+	
 	for section in sections:
 		res, _, res_type = section.partition(' ')
 		if len(res_type) <= 0: # Make sure this is actually a resource section and not something like Core.System
 			continue
 
 		resource = dict(config.items(section))
-
 		# Add resources to our basic hero set
-		if res_type == 'RxHeroProvider':
-			hero['name'] = resource['heroarchetypename']
-		elif res_type == 'RxSkillProvider':
-			hero['skills'].append(resource)
-		elif res_type == 'RxSkillUpgradeProvider':
-			hero['skill_upgrades'].append(resource)
-
-	return hero
+		try:
+			cls = Resource.__map__[res_type]
+		except KeyError:
+			#  print(resource)
+			log.warn("Found un-known section " + res_type);
+		else:
+			inst = cls(resource)
+			log.debug(inst)
 
 
 def parse_heroes(directory='Config/Heroes'):
@@ -82,7 +86,7 @@ def parse_heroes(directory='Config/Heroes'):
 
 	for f in hero_files:
 		try:
-			heroes.append(parse_hero(f))
+			parse_file(f)
 		except ValueError:
 			pass
 
