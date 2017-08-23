@@ -64,11 +64,11 @@ def parse_file(file_name):
 		try:
 			cls = Resource.__map__[res_type]
 		except KeyError:
-			#  print(resource)
-			log.warn("Found un-known section " + res_type);
+			pass
+			# print(resource)
+			# log.warn("Found un-known section " + res_type);
 		else:
 			inst = cls(resource)
-			log.debug(inst)
 
 
 def parse_heroes(directory='Config/Heroes'):
@@ -89,6 +89,9 @@ def parse_heroes(directory='Config/Heroes'):
 			parse_file(f)
 		except ValueError:
 			pass
+
+	for id, skill in Skill.__dataset__.items():
+		print("Skill: " + str(skill))
 
 	return heroes
 

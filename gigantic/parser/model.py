@@ -7,15 +7,22 @@ log = __import__('logging').getLogger(__name__)
 
 class Relationship(Attribute):
 	resource = Attribute()
-	name = Attribute()
 	
 	def __fixup__(self, cls):
 		self.resource.__relates_to__(cls)  # cls == the class a Relationship instance is being assigned to
+	
+	def __get__(self, obj, cls=None):
+		#return super(Attribute, self).__get__(obj, cls)
+		id = super(Relationship, self).__get__(obj, cls)
+		return self.resource.__dataset__[id]
+		
+	def __repr__(self):
+		return str(self.__data__)
 
 
 class Resource(Container):  # Abstraction, no real sections in the ini
 	id = Attribute('resourceid')  # puAdept4_Cooldown_Upgrade, Adept, etc etc
-	__map__ = {}
+	__map__ = {}  # this is global to the entire base class
 	
 	@classmethod
 	def __attributed__(cls):
@@ -72,11 +79,12 @@ class Hero(UIResource):  # [HeroArchetypeName RxHeroProvider]
 	stamina_recover_trigger = Attribute('lowstaminarecoveredpercent')  # 30.0f
 	
 	def __repr__(self):
-		return self.name
+		return "Hero: "+self.id
 
 
 class Upgrade(Resource):  # Abstraction, no real sections in the ini
-	hero = Relationship(resource=Hero, name='heroname')  # Adept, same as HeroArchetypeName
+	hero = Relationship(resource=Hero)
+	hero_id = Attribute('heroname')  # Adept, same as HeroArchetypeName
 	tier = Attribute('upgradetier')  # ESUT_Upgrade1, ESUT_Upgrade1_SubUpgrade1, ESUT_Upgrade2, ESUT_Upgrade2_SubUpgrade1, ESUT_None, etc
 	min_level = Attribute('minherolevel')  # 1 or 5?
 	path_category = Attribute('upgradepathcategory')  # UPC_Offense, UPC_Defense, UPC_BurstDamage, UPC_Healing, UPC_Sustain, UPC_Mobility, UPC_AntiDebuffs
@@ -85,14 +93,19 @@ class Upgrade(Resource):  # Abstraction, no real sections in the ini
 class Skill(UIResource):  # [ResourceID RxSkillProvider]
 	__section__ = 'RxSkillProvider'
 	
-	hero = Relationship(resource=Hero, name='heroarchetypename')  # Adept, same as HeroArchetypeName in Archetype
+	hero = Relationship('heroarchetypename', resource=Hero)
+	# hero_id = Attribute('heroarchetypename')  # Adept, same as HeroArchetypeName in Archetype
 	name = Attribute('skillname')  # Skill1, Skill2, Skill3, or Skill3 typically
+	
+	def __repr__(self):
+		return self.name+" for " +str(self.hero)
 
 
 class SkillUpgrade(Upgrade):  # [ResourceID RxSkillUpgradeProvider]
 	__section__ = 'RxSkillUpgradeProvider'
 	
-	category = Relationship(resource=Skill, name='skillupgradecategory')  # EUC_Skill1Upgrade where Skill1 is the 'SkillName' of the skill
+	skill = Relationship(resource=Skill)
+	skill_id = Attribute('skillupgradecategory')  # EUC_Skill1Upgrade where Skill1 is the 'SkillName' of the skill
 	index = Attribute('skillindex')  # Not sure what it corresponds to, have seen anywhere from 11-34
 
 
