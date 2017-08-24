@@ -18,6 +18,7 @@ pip install -e .[development]
 ## Usage
 
 #### To get json
+##### NOTE: For development it currently prints the repr of the objects rather than the json encoded data #####
 Run `python -m gigantic.parser` in the 'RxGame' directory of your gigantic folder and it will print out json parsed output.
 You may use `python -m gigantic.parser > target_file.json` to output this to a file.
 
