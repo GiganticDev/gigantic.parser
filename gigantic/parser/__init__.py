@@ -9,7 +9,8 @@ import time
 from bson.json_util import dumps
 
 
-from gigantic.dao.model import *
+from gigantic.dao.hero import *
+from gigantic.dao.translation import *
 
 
 log = __import__('logging').getLogger(__name__)
@@ -40,7 +41,25 @@ def get_hero_config(file_name):
 	return config
 
 
-def parse_file(file_name):
+def get_translate_config(file_name):
+	# print("Parsing hero at {0}".format(file_name))
+	config = configparser.RawConfigParser(strict=False) # strict=False to allow duplicate keys within sections
+	
+	# Stupid hackiness to decode utf-16le file, encode it as utf-8, then write to temporary file to fix BOM
+	f = open(file_name, "rb")
+	u = f.read().decode("utf-16le").encode("utf-8")
+	f.close()
+	fp = tempfile.TemporaryFile()
+	fp.write(u)
+	fp.seek(0)
+	
+	# ConfigParser ultimately wants ascii
+	config.read_string(fp.read().decode("ascii", "ignore"))
+	fp.close()
+	return config
+
+
+def parse_hero_file(file_name):
 	"""
 	Instantiate python objects in memory from the config files.
 	Returns the data in a set which reprents the hero and their skills.
@@ -57,21 +76,19 @@ def parse_file(file_name):
 	
 	sections = config.sections()
 	for section in sections:
-		res, _, res_type = section.partition(' ')
+		section_id, _, res_type = section.partition(' ')
 		if len(res_type) <= 0: # Make sure this is actually a resource section and not something like Core.System
 			continue
 		
-		resource = dict(config.items(section))
-
 		# Add resources to our basic hero set
 		try:
 			cls = Resource.__map__[res_type]
 		except KeyError:
 			pass
-			# print(resource)
 			# log.warn("Found un-known section " + res_type);
 		else:
-			inst = cls(resource)
+			resource_data = dict(config.items(section))
+			inst = cls(section_id, resource_data)
 
 
 def parse_heroes(directory='Config/Heroes'):
@@ -84,23 +101,37 @@ def parse_heroes(directory='Config/Heroes'):
 		print("Found no hero config files")
 		return
 	
-	os.chdir(directory)
-	
 	for f in hero_files:
 		if '.DS_Store' in f: continue
 		try:
-			parse_file(f)
+			parse_hero_file(os.path.join(directory, f))
 		except ValueError:
 			pass
-	
-	for section, Res in Resource.__map__.items():
-		for id, instance in Res.__dataset__.items():
-			log.debug(instance)
-	
-	# Get skills for Adept, aka Aisling, to test timing of naive list comprehension filtering
-	before = time.time()
-	skills = [skill for skill in Skill.__dataset__.values() if skill.hero == 'Adept']
-	after = time.time()
-	# print("Fetched {0} skills for Aisling in {1:.3f}ms".format(len(skills), (after-before)*1000))
-	# for skill in skills:
-	# 	print(dumps(skill))
+
+
+def parse_translations(directory='Localization'):
+	"""
+	Finds RxGame.ini in the DEU, FRA, and INT directories and parses them for translated strings
+	"""
+	dirs = os.listdir(directory)
+	for language in LANGUAGES:
+		assert language in dirs
+		config = get_translate_config(os.path.join(directory, language, 'RxGame.{0}'.format(language.lower())))
+		if not config:
+			raise ValueError()
+		
+		sections = config.sections()
+		for section in sections:
+			section_id, _, res_type = section.partition(' ')
+			
+			try:
+				cls = Translation.__map__[res_type]
+			except KeyError:
+				pass
+			else:
+				log.debug("Registering new {0} for language {1}".format(cls.__name__, language))
+				translation_data = dict(config.items(section))
+				inst = cls(language, section_id, translation_data)
+				
+			
+			

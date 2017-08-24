@@ -10,7 +10,41 @@ log = __import__('logging').getLogger(__name__)
 
 
 class Resource(DAO):
+	__map__ = {}  # this is global to the entire base class
+	
 	id = Attribute('resourceid')  # puAdept4_Cooldown_Upgrade, Adept, etc etc
+	section_id = Attribute('section_id')
+	
+	@classmethod
+	def __attributed__(cls):
+		"""Called after a new subclass is constructed."""
+		
+		if hasattr(cls, '__section__') and cls.__section__:
+			cls.__map__[cls.__section__] = cls
+		
+		cls.__relations__ = set()  # related resources
+		cls.__dataset__ = {}  # id -> instance map
+		cls.__section_map__ = {} # subclass specific section_id -> id map
+	
+	def __init__(self, section_id, data=None, *args, **kw):
+		super(Resource, self).__init__(*args, **kw)
+		
+		if data is not None:
+			self.__data__ = data
+		
+		if self.id in self.__dataset__:
+			raise ValueError("Duplicate " + self.__class__.__name__ + " ID: " + self.id)
+		
+		if section_id in self.__section_map__:
+			raise ValueError("Duplicate " + self.__class__.__name__ + " ID: " + self.id)
+		
+		self.section_id = section_id
+		self.__dataset__[self.id] = self  # Record ourselves.
+		self.__section_map__[section_id] = self.id
+	
+	@classmethod
+	def __relates_to__(cls, foreign):
+		cls.__relations__.add(foreign)
 
 
 class UIResource(Resource):  # Abstraction, no real sections in the ini
@@ -41,6 +75,11 @@ class Hero(UIResource):  # [HeroArchetypeName RxHeroProvider]
 	
 	stamina_min_trigger = Attribute('lowstaminatriggerpercent')  # 25.0f
 	stamina_recover_trigger = Attribute('lowstaminarecoveredpercent')  # 30.0f
+	
+	# Translated fields
+	display_name = Attribute('herodisplayname')
+	description = Attribute('herodescription')
+	flavor_text = Attribute('heroflavortext')
 
 
 class Skill(UIResource):  # [ResourceID RxSkillProvider]
