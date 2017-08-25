@@ -17,17 +17,24 @@ pip install -e .[development]
 
 ## Usage
 
-#### To get json
-##### NOTE: For development it currently prints the repr of the objects rather than the json encoded data #####
-Run `python -m gigantic.parser` in the 'RxGame' directory of your gigantic folder and it will print out json parsed output.
-You may use `python -m gigantic.parser > target_file.json` to output this to a file.
-
-
 #### As in-memory db
-The models located in the `gigantic.dao.model` can be used as a sort of in-memory database and filtered using list comprehension. All istances of those classes are stored in the class attribute `__dataset__`, which is a global map.
+Each class located in `gigantic.dao.hero` and `gigantic.dao.translation` acts as a singleton for class instances, which are held in the class' `__dataset__` attribute map which contains `resource_id: resource_instance` key value pairs..
 
 `model.Hero.__dataset__` for example will list all heroes, to find a specific hero by 'resource id' you can do `model.Hero.__dataset__['Adept']` where `Adept` is the hero ID for Aisling.
 
-To retrieve all skills for Aisling as the project currently does you could use list comprehension on the Skill dataset singleton.
+You can use list comprehension to filter and relate the data very quickly thanks to the small size of the datasets, for example to get all skills for Aisling it would be as simple as:
 
 `aisling_skills = [skill for skill in model.Skill.__dataset__.values() if skill.hero == 'Adept']`
+
+##### More complete example with translations
+
+    from gigantic.parser import parse_heroes, parse_translations
+    from gigantic.dao.hero import *
+    from gigantic.dao.translation import *
+    
+    if __name__ == '__main__':
+        parse_heroes('/absolute/path/to/Config/Heroes')
+        parse_translations('/absolute/path/to/Localization')
+        for hero in Hero.__dataset__.values():
+            translation = HeroTranslation.__dataset__['INT'][hero.section_id]
+            print("{0} ({1})".format(translation.display_name, hero.id))
